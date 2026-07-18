@@ -1,0 +1,8 @@
+coverage
+out
+release
+test-results
+playwright-report
+build/icon.iconset
+docs/screenshots
+package-lock.json

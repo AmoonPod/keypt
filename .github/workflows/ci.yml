@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check types, lint, tests, and formatting
+        run: npm run check
+      - name: Build production bundles
+        run: npm run build
+      - name: Audit dependencies and signatures
+        run: |
+          npm audit --audit-level=high
+          npm audit signatures
+
+  native:
+    name: Native / ${{ matrix.name }}
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS ARM64
+            os: macos-15
+          - name: macOS Intel
+            os: macos-15-intel
+          - name: Windows x64
+            os: windows-2025
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build production bundles
+        run: npm run build
+      - name: Test Electron boundary
+        run: npm run test:e2e
+      - name: Create ad-hoc signed macOS verification package
+        if: runner.os == 'macOS'
+        run: npm run package:mac:adhoc
+      - name: Create unsigned Windows verification package
+        if: runner.os == 'Windows'
+        run: npm run package
+      - name: Resolve packaged executable
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == 'macOS' ]]; then
+            arch="$(node -p 'process.arch')"
+            app_dir="$([ "$arch" = 'x64' ] && printf 'mac' || printf 'mac-%s' "$arch")"
+            printf 'KEYPT_PACKAGE_EXECUTABLE=release/%s/Keypt.app/Contents/MacOS/Keypt\n' "$app_dir" >> "$GITHUB_ENV"
+          else
+            printf 'KEYPT_PACKAGE_EXECUTABLE=release/win-unpacked/Keypt.exe\n' >> "$GITHUB_ENV"
+          fi
+      - name: Verify Electron fuses
+        shell: bash
+        run: |
+          fuse_state="$(npx @electron/fuses read --app "$KEYPT_PACKAGE_EXECUTABLE")"
+          grep -F 'RunAsNode is Disabled' <<<"$fuse_state"
+          grep -F 'EnableCookieEncryption is Enabled' <<<"$fuse_state"
+          grep -F 'EnableNodeOptionsEnvironmentVariable is Disabled' <<<"$fuse_state"
+          grep -F 'EnableNodeCliInspectArguments is Disabled' <<<"$fuse_state"
+          grep -F 'EnableEmbeddedAsarIntegrityValidation is Enabled' <<<"$fuse_state"
+          grep -F 'OnlyLoadAppFromAsar is Enabled' <<<"$fuse_state"
+          grep -F 'LoadBrowserProcessSpecificV8Snapshot is Disabled' <<<"$fuse_state"
+          grep -F 'GrantFileProtocolExtraPrivileges is Disabled' <<<"$fuse_state"
+          grep -F 'WasmTrapHandlers is Enabled' <<<"$fuse_state"
+      - name: Smoke-test packaged application
+        run: npm run test:package

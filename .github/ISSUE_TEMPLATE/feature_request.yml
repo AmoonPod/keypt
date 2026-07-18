@@ -1,0 +1,49 @@
+name: Product proposal
+description: Propose a small improvement to the shortcut-to-paste loop.
+title: '[Proposal]: '
+labels: [proposal, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keypt is intentionally narrow. Accounts, cloud sync, AI, collaboration, rich editing, collections, dashboards, telemetry, and speculative integrations are out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What specific friction happens between copying and pasting today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Smallest useful change
+      description: Describe the smallest behavior that solves the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: keyboard
+    attributes:
+      label: Keyboard and platform behavior
+      description: Explain macOS/Windows differences, shortcuts, focus, and failure behavior where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and retention impact
+      description: What new data or privilege would this require? “None” is a valid answer with a short explanation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What can a user do now, and why is it insufficient?
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Product boundary
+      options:
+        - label: This keeps Keypt a compact local clipboard shortcut rather than a workspace.
+          required: true

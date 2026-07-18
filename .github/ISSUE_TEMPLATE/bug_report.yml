@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a reproducible Keypt problem using synthetic clipboard data.
+title: '[Bug]: '
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Keypt. **Do not paste real clipboard contents, credentials, vault files, personal paths, or other sensitive data.** Report security issues privately using SECURITY.md.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and architecture
+      description: For example, macOS 15 arm64 or Windows 11 x64.
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Keypt version
+      description: Use the version shown in Settings or the release filename.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the visible behavior without including private clipboard data.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Use generated text or a non-sensitive sample image.
+      placeholder: |
+        1. Copy the synthetic value …
+        2. Press the Keypt shortcut …
+        3. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Safe diagnostics
+      description: Optional logs or screenshots after removing usernames, paths, item previews, and secrets.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I reproduced this on the latest release or default branch.
+          required: true
+        - label: I used only synthetic clipboard data in this report.
+          required: true
+        - label: This is not a vulnerability report.
+          required: true

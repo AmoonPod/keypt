@@ -1,0 +1,14 @@
+node_modules/
+out/
+release/
+coverage/
+.DS_Store
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+build/icon.iconset/
+test-results/
+playwright-report/
+.impeccable/
