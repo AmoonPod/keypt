@@ -212,7 +212,7 @@ jobs:
               throw "Updater publisher does not match Authenticode signer in $($config.FullName)"
             }
           }
-          $fuses = npx @electron/fuses read --app release/win-unpacked/Keypt.exe
+          $fuses = npx @electron/fuses read --app release/win-unpacked/Keypt.exe | Out-String
           $expected = @(
             'RunAsNode is Disabled',
             'EnableCookieEncryption is Enabled',
